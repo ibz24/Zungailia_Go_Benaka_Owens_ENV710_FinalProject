@@ -3,28 +3,50 @@ title: "CarbonAnalysis"
 author: "ikebenaka"
 date: "2023-03-27"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(lme4)
+library(lmerTest)
+library(car)
 ```
 
-## R Markdown
+```{r}
+soil <- read.csv("soil.csv")
+soil <- soil %>%
+  rename %>%
+  mutate(soil = case_when(
+    soil == "FF" ~ "Forest floor",
+    soil == "MIN" ~ "Mineral soil",
+    TRUE ~ soil)) %>%
+  mutate(site = case_when(
+    site == "P1" ~ "Plow 1",
+    site == "P2" ~ "Plow 2",
+    site == "S1" ~ "Pasture 1",
+    site == "S2" ~ "Pasture 2",
+    site == "W1" ~ "Woodlot 1",
+    site == "W2" ~ "Woodlot 2",
+    TRUE ~ site))
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+#Remove NAs
+soil <- na.omit(soil)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#Factor classes
+soil$stake <- as.factor(soil$stake)
+soil$row <- as.factor(soil$row)
+soil$site <- as.factor(soil$site)
 ```
 
-## Including Plots
+```{r}
+#Create a model --> carbon as dependent variable
+sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
+summary(sc1)
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+vif(sc1)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
