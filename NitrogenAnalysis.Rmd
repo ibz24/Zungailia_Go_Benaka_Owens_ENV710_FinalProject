@@ -1,0 +1,43 @@
+---
+title: "Nitrogen Analysis"
+author: "Li Jia Go"
+date: "2023-03-27"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(GGally)
+library(lme4)
+library(lmerTest)
+library(car)
+```
+
+```{r}
+soil <- read.csv("soil.csv")
+soil <- soil %>%
+  rename %>%
+  mutate(soil = case_when(
+    soil == "FF" ~ "Forest floor",
+    soil == "MIN" ~ "Mineral soil",
+    TRUE ~ soil)) %>%
+  mutate(site = case_when(
+    site == "P1" ~ "Plow 1",
+    site == "P2" ~ "Plow 2",
+    site == "S1" ~ "Pasture 1",
+    site == "S2" ~ "Pasture 2",
+    site == "W1" ~ "Woodlot 1",
+    site == "W2" ~ "Woodlot 2",
+    TRUE ~ site))
+
+#Remove NAs
+soil <- na.omit(soil)
+
+#Factor classes
+soil$stake <- as.factor(soil$stake)
+soil$row <- as.factor(soil$row)
+soil$site <- as.factor(soil$site)
+```
