@@ -32,6 +32,8 @@ soil <- soil %>%
     site == "W1" ~ "Woodlot 1",
     site == "W2" ~ "Woodlot 2",
     TRUE ~ site))
+ #try creating a dataframe where the land use plots are combined 3 <- 6
+
 
 #Remove NAs
 soil <- na.omit(soil)
@@ -48,5 +50,10 @@ sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density
 summary(sc1)
 
 vif(sc1)
+```
+
+```{r}
+ggplot(soil, aes(x=site,y=c))+
+  geom_boxplot()
 ```
 
