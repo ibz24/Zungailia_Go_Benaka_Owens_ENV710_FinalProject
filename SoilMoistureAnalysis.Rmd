@@ -59,5 +59,7 @@ plot(smois)
 
 smois2 <- lm(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + soil.moisture + soil.moisture.capacity, data = soil)
 summary(smois2)
+
 ```
 
+git merge
