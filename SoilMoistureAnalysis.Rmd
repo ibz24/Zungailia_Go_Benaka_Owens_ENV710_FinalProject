@@ -62,4 +62,3 @@ summary(smois2)
 
 ```
 
-git merge
