@@ -52,8 +52,7 @@ summary(smois)
   #fixed effects
     #coefficients --> represent the slope for the categorical effect of soil data
     #t- value --> simply the estimate divided by the standard error
-    #intercept = the average of our data for the Pasture 1 location
-condition
+    #intercept = the average of our data for the Pasture 1 location condition
 plot(smois)
 
 #Assumptions: creating a residual plot, a histogram of the residuals or a Q-Q plot 
