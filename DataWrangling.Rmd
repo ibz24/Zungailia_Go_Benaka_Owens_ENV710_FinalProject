@@ -8,7 +8,6 @@ library(tidyverse)
 ```{r}
 soil <- read.csv("soil.csv")
 soil <- soil %>%
-  select(-row, -stake) %>%
   rename %>%
   mutate(soil = case_when(
     soil == "FF" ~ "Forest floor",
