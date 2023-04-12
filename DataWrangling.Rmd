@@ -2,6 +2,16 @@
 ```{r}
 library(ggplot2)
 library(tidyverse)
+library(dplyr)
+library(GGally)
+library(car)
+library(ggDoE)
+library(janitor)
+library(merTools)
+library(blmeco)
+library(glmmTMB)
+library(DHARMa)
+library(performance)
 ```
 
 

@@ -32,7 +32,6 @@ soil <- soil %>%
     site == "W1" ~ "Woodlot 1",
     site == "W2" ~ "Woodlot 2",
     TRUE ~ site))
- #try creating a dataframe where the land use plots are combined 3 <- 6
 
 
 #Remove NAs
@@ -46,7 +45,7 @@ soil$site <- as.factor(soil$site)
 
 ```{r}
 #Create a model --> carbon as dependent variable
-sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
+sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + om*ph.h2o*n*p*nh4*no3*ca*mg*k + soil.moisture + soil.moisture.capacity + n.min*nitr + cec, data = soil)
 summary(sc1)
 
 vif(sc1)
