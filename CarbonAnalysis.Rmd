@@ -14,6 +14,10 @@ library(GGally)
 library(lme4)
 library(lmerTest)
 library(car)
+library(sjPlot)
+library(performance)
+library(vcdExtra)
+library(Amelia)
 ```
 
 ```{r}
@@ -45,10 +49,21 @@ soil$site <- as.factor(soil$site)
 
 ```{r}
 #Create a model --> carbon as dependent variable
-sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + om*ph.h2o*n*p*nh4*no3*ca*mg*k + soil.moisture + soil.moisture.capacity + n.min*nitr + cec, data = soil)
+sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + om+ph.h2o+n+p+nh4+no3+ca+mg+k + soil.moisture + soil.moisture.capacity + n.min+nitr + cec, data = soil)
 summary(sc1)
+sc2 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n + nh4 + soil.moisture, data = soil)
+summary(sc2)
+sc3 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n + soil.moisture, data = soil)
+summary(sc3)
+sc4 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n, data = soil)
+summary(sc4)
+sc5 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + ph.h2o + n, data = soil)
+summary(sc5)
+sc6 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc6)
 
-vif(sc1)
+AIC(sc1,sc2,sc3,sc4,sc5,sc6)
+lrtest(sc1,sc2,sc3,sc4,sc5,sc6)
 ```
 
 ```{r}
