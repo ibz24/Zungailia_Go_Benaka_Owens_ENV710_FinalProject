@@ -43,9 +43,9 @@ sapply(lapply(soil, unique), length)
   #soil variable only has one unique value (Forest floor) --> drop from model
 
 #Create a model --> soil moisture as dependent variable
-smois <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
-summary(smois)
-plot(smois)
+smois1 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
+summary(smois1)
+plot(smois1)
   #random effects
     #standard deviation -->  This is a measure of the variability for each random effect that you added to the model
     #row, stake -->effect of row/stake, overall variation within row/stake, gives us the variance...std. dev. is the effect size (effect of row/stake on overall soil moisture)
@@ -55,30 +55,77 @@ plot(smois)
     #coefficients --> represent the slope for the categorical effect of soil data
     #t- value --> simply the estimate divided by the standard error
     #intercept = the average of our data for the Pasture 1 location condition
-plot(smois)
+
+smois2 <- update(smois, .~. -bulk.density)
+summary(smois2)
+
+smois3 <- update(smois2, .~. -cec)
+summary(smois3)
+
+smois4 <- update(smois3, .~. -n.min)
+summary(smois4)
+
+smois5 <- update(smois4, .~. -nitr)
+summary(smois5)
+
+smois6 <- update(smois5, .~. -k)
+summary(smois6)
+
+smois7 <- update(smois6, .~. -c)
+summary(smois7)
+
+smois8 <- update(smois7, .~. -no3)
+summary(smois8)
+
+smois9 <- update(smois8, .~. -p)
+summary(smois9)
+
+smois10 <- update(smois9, .~. -om)
+summary(smois10)
+
+smois11 <- update(smois10, .~. -ph.cacl2)
+summary(smois11)
+
+smois12 <- update(smois11, .~. -ca)
+summary(smois12)
+
+smois13 <- update(smois12, .~. -mg)
+summary(smois13)
+
+smois14 <- update(smois13, .~. -nh4)
+summary(smois14)
+
+smois15 <- update(smois14, .~. -ph.h2o)
+summary(smois15)
+
+smois16 <- update(smois15, .~. -soil.mass)
+summary(smois16)
+
+smois17 <- update(smois16, .~. -n)
+summary(smois17)
+
+#Compare models with AIC
+AIC(smois1, smois2, smois3, smois4, smois5, smois6, smois7, smois8, smois9, smois10, smois11, smois12, smois13, smois14, smois15, smois16, smois17)
+  #smois17 is the best model
 
 #Assumptions: creating a residual plot, a histogram of the residuals or a Q-Q plot 
 
 #Best Model
-smois2 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + n + nh4 + ca + mg + soil.moisture + soil.moisture.capacity, data = soil)
-summary(smois2)
-plot(smois2)
+smois <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
+summary(smois)
+plot(smois)
 
-smois3 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
-summary(smois3)
-plot(smois3)
-
-AIC(smois, smois2, smois3)
 library(car)
-vif(smois3)
+vif(smois)
 
 library(ggplot2)
+#Site vs soil moisture (scatterplot)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_point() +
   geom_smooth(se = FALSE, method = lm) +
   theme_bw() 
 
-
+#Site vs soil moisture (boxplot)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_boxplot() +
   geom_smooth(se = FALSE, method = lm) +
