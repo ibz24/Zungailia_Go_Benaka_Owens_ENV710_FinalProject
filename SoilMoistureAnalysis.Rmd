@@ -45,6 +45,7 @@ sapply(lapply(soil, unique), length)
 #Create a model --> soil moisture as dependent variable
 smois <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
 summary(smois)
+plot(smois)
   #random effects
     #standard deviation -->  This is a measure of the variability for each random effect that you added to the model
     #row, stake -->effect of row/stake, overall variation within row/stake, gives us the variance...std. dev. is the effect size (effect of row/stake on overall soil moisture)
@@ -59,13 +60,17 @@ plot(smois)
 #Assumptions: creating a residual plot, a histogram of the residuals or a Q-Q plot 
 
 #Best Model
-smois2 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
+smois2 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + n + nh4 + ca + mg + soil.moisture + soil.moisture.capacity, data = soil)
 summary(smois2)
 plot(smois2)
 
-AIC(smois, smois2)
+smois3 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
+summary(smois3)
+plot(smois3)
+
+AIC(smois, smois2, smois3)
 library(car)
-vif(smois2)
+vif(smois3)
 
 library(ggplot2)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
