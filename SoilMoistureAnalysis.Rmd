@@ -58,17 +58,38 @@ plot(smois)
 
 #Assumptions: creating a residual plot, a histogram of the residuals or a Q-Q plot 
 
+#Best Model
 smois2 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
 summary(smois2)
 plot(smois2)
 
+AIC(smois, smois2)
+library(car)
+vif(smois2)
+
 library(ggplot2)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_point() +
-  geom_smooth(method = "lm") +
+  geom_smooth(se = FALSE, method = lm) +
   theme_bw() 
 
-AIC(smois, smois2)
 
+ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
+  geom_boxplot() +
+  geom_smooth(se = FALSE, method = lm) +
+  theme_bw()
+
+#Mean of soil moisture for each of the land use types
+soil %>% filter(site == "Plow 1" | site == "Plow 2") %>%
+  summarise(mean=mean(soil.moisture))
+  #0.9737
+
+soil %>% filter(site == "Pasture 1" | site == "Pasture 2") %>%
+  summarise(mean=mean(soil.moisture))
+  #1.238039	
+
+soil %>% filter(site == "Woodlot 1" | site == "Woodlot 2") %>%
+  summarise(mean=mean(soil.moisture))
+  #1.604906	
 ```
 
