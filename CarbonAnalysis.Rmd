@@ -14,6 +14,10 @@ library(GGally)
 library(lme4)
 library(lmerTest)
 library(car)
+library(sjPlot)
+library(performance)
+library(vcdExtra)
+library(Amelia)
 ```
 
 ```{r}
