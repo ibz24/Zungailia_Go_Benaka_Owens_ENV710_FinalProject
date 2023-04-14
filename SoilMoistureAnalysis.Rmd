@@ -42,16 +42,16 @@ ggpairs(soil, c("site", "row", "stake", "soil", "soil.mass", "soil.moisture", "s
 sapply(lapply(soil, unique), length)
   #soil variable only has one unique value (Forest floor) --> drop from model
 
-#Create a model --> soil moisture as dependent variable
+#Create a FULL model --> soil moisture as dependent variable
 smois1 <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
 summary(smois1)
 plot(smois1)
-  #random effects
+  #Random effects
     #standard deviation -->  This is a measure of the variability for each random effect that you added to the model
     #row, stake -->effect of row/stake, overall variation within row/stake, gives us the variance...std. dev. is the effect size (effect of row/stake on overall soil moisture)
    #Residual --> stands for the variability that’s not due to either stake or row
     #row effect is greater than stake --> looking at std. dev. to determine this
-  #fixed effects
+  #Fixed effects
     #coefficients --> represent the slope for the categorical effect of soil data
     #t- value --> simply the estimate divided by the standard error
     #intercept = the average of our data for the Pasture 1 location condition
