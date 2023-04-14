@@ -41,13 +41,58 @@ soil$stake <- as.factor(soil$stake)
 soil$row <- as.factor(soil$row)
 soil$site <- as.factor(soil$site)
 
-
 #The data were analyzed by two-way factorial analysis of variance using land-use history (woodlot, pastured, or
 #cultivated) as main effects and site and row as a covariate.
 
-sn <- lmer(n ~ factor(site) + (1|row) + (1|stake), data=soil)
-summary(sn)
-  
-  #c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + n + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
+#full model
+n2.1 <- lmer(n ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c  + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
+summary(n2.1)
 
+n2.2 <- update(n2.1, .~. -p)
+summary(n2.2)
+
+n2.3 <- update(n2.2, .~. -cec)
+summary(n2.3)
+
+n2.4 <- update(n2.3, .~. -k)
+summary(n2.4)
+
+n2.5 <- update(n2.4, .~. -mg)
+summary(n2.5)
+
+n2.6 <- update(n2.5, .~. -ph.cacl2)
+summary(n2.6)
+
+n2.7 <- update(n2.6, .~. -n.min)
+summary(n2.7)
+
+n2.8 <- update(n2.7, .~. -nh4)
+summary(n2.8)
+
+n2.9 <- update(n2.8, .~. -ff.thickness)
+summary(n2.9)
+
+n2.10 <- update(n2.9, .~. -nitr)
+summary(n2.10)
+
+n2.11 <- update(n2.10, .~. -no3)
+summary(n2.11)
+
+n2.12 <- update(n2.11, .~. -ph.h2o)
+summary(n2.12)
+
+n2.13 <- update(n2.12, .~. -soil.moisture.capacity)
+summary(n2.13)
+
+n2.14 <- update(n2.13, .~. -om)
+summary(n2.14)
+
+n2.15 <- update(n2.14, .~. -soil.moisture)
+summary(n2.15)
+
+#best model
+n2.16 <- update(n2.15, .~. -bulk.density)
+summary(n2.16)
+
+AIC(n2.1, n2.2, n2.3, n2.4, n2.5, n2.6, n2.7, n2.8, n2.9, n2.10, n2.11, n2.12, n2.13, n2.14, n2.15, n2.16)
 ```
