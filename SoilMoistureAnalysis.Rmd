@@ -2,6 +2,8 @@
 
 ```{r}
 #Load packages
+require(ggplot2)
+inst
 library(ggplot2)
 library(GGally)
 library(lme4)
@@ -113,6 +115,8 @@ AIC(smois1, smois2, smois3, smois4, smois5, smois6, smois7, smois8, smois9, smoi
 #Best Model
 smois <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
 summary(smois)
+
+par(mfrow = c(2,2))
 plot(smois)
 
 library(car)
@@ -125,11 +129,13 @@ ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_smooth(se = FALSE, method = lm) +
   theme_bw() 
 
+library(ggplot2)
 #Site vs soil moisture (boxplot)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_boxplot() +
   geom_smooth(se = FALSE, method = lm) +
-  theme_bw()
+  theme_bw() + 
+  labs(x="Site (Land Use Type)", y="Soil Moisture (gH20/gsoil)")
 
 #Mean of soil moisture for each of the land use types
 soil %>% filter(site == "Plow 1" | site == "Plow 2") %>%
@@ -144,4 +150,12 @@ soil %>% filter(site == "Woodlot 1" | site == "Woodlot 2") %>%
   summarise(mean=mean(soil.moisture))
   #1.604906	
 ```
+
+## Writeup
+
+Null hypothesis: There is no significant relationship between any of the soil variables on soil moisture (gH20/gsoil). 
+Alternative hypothesis: This is a significant relationship between one/several of the soil variables on soil moisture (gH20/gsoil). 
+
+We first wanted to understand if soil moisture (gH20/gsoil) is influenced by any of the soil variables provided in this data set. To do so, we created a linear model ('lmer') with soil moisture as the response variable and all the remaining variables as the independent variables. Row and stake were treated as random effects, and site was treated as a factor. The full model was reduced down to just contain significant variables, which included: site, row (random effect), stake (random effect), forest floor thickness (), and soil moisture capacity. Based on the results of the model 
+
 
