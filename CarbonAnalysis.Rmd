@@ -21,7 +21,6 @@ library(Amelia)
 library(mosaic)
 library(Sleuth3)
 library(car)
-library(boot)
 library(lmtest)
 library(MASS)
 library(AER)
@@ -45,7 +44,6 @@ soil <- soil %>%
     site == "W2" ~ "Woodlot 2",
     TRUE ~ site))
 
-
 #Remove NAs
 soil <- na.omit(soil)
 
@@ -55,6 +53,8 @@ soil$row <- as.factor(soil$row)
 soil$site <- as.factor(soil$site)
 
 ggpairs(soil, c("site", "row", "stake", "soil", "soil.mass", "soil.moisture", "c","n","ph.h2o","om"))
+
+
 ```
 
 ```{r}
@@ -73,12 +73,58 @@ sc6 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
 summary(sc6)
 sc7 <- lmer(log(c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
 summary(sc7)
+sc8 <- lmer(asin(sqrt(c/100)) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc8)
+sc8 <- lmer((c)^2 ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc8)
+
 
 AIC(sc1,sc2,sc3,sc4,sc5,sc6,sc7) #sc4 with lowest AIC
 lrtest(sc1,sc2,sc3,sc4,sc5,sc6,sc7) #sc4 fits the data equally well as the full model, sc6 fits data as well as sc5
 vif(sc4)
 vif(sc6)
+plot(sc7)
 ```
+
+```{r, Check assumptions using diagnostics}
+#fitted vs residual
+plot(sc6, type=c("p","smooth"), col.line=1)
+#scale-location
+plot(sc6,
+     sqrt(abs(resid(.)))~fitted(.),
+     type=c("p","smooth"), col.line=1)
+#QQ
+lattice::qqmath(sc6)
+#residuals vs leverage
+plot(sc6, rstudent(.) ~ hatvalues(.))
+
+
+#fitted vs residual
+plot(sc7, type=c("p","smooth"), col.line=1)
+#scale-location
+plot(sc7,
+     sqrt(abs(resid(.)))~fitted(.),
+     type=c("p","smooth"), col.line=1)
+#QQ
+lattice::qqmath(sc7)
+#residuals vs leverage
+plot(sc7, rstudent(.) ~ hatvalues(.))
+
+
+
+#fitted vs residual
+plot(sc8, type=c("p","smooth"), col.line=1)
+#scale-location
+plot(sc8,
+     sqrt(abs(resid(.)))~fitted(.),
+     type=c("p","smooth"), col.line=1)
+#QQ
+lattice::qqmath(sc8)
+#residuals vs leverage
+plot(sc8, rstudent(.) ~ hatvalues(.))
+
+```
+
 
 ```{r}
 ggplot(soil, aes(x=site,y=c))+
