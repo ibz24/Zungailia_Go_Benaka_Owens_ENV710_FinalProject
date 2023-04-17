@@ -41,13 +41,16 @@ soil$stake <- as.factor(soil$stake)
 soil$row <- as.factor(soil$row)
 soil$site <- as.factor(soil$site)
 
-#The data were analyzed by two-way factorial analysis of variance using land-use history (woodlot, pastured, or
-#cultivated) as main effects and site and row as a covariate.
+# just looking at impact of site on percent nitrogen in soil
+site.n <- lm (n~ factor(site), data=soil)
+summary(site.n)
+#can tell that woodlots are significantly different from pasture. while plow 1&2 and pasture are not significantly different from pasture 1. 
 
-#full model
+#full model to determine what impacts nitrogen in soils across the various plots 
 n2.1 <- lmer(n ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c  + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
 summary(n2.1)
 
+#stepwise reduction to remove the most non-significant factor
 n2.2 <- update(n2.1, .~. -p)
 summary(n2.2)
 
@@ -95,4 +98,23 @@ n2.16 <- update(n2.15, .~. -bulk.density)
 summary(n2.16)
 
 AIC(n2.1, n2.2, n2.3, n2.4, n2.5, n2.6, n2.7, n2.8, n2.9, n2.10, n2.11, n2.12, n2.13, n2.14, n2.15, n2.16)
+
+vif(n2.16)
+
+#checking assumptions 
+plot(n2.16)
+#residual vs fitted plot looks ok. some minor bunching but not too serious
+
+#Site vs nitrogen 
+ggplot(soil, aes(x=factor(site), y=n)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = lm) +
+  theme_bw() +ylab("Percent Nitrogen") + xlab("Site")
+
+ggplot(soil, aes(x=factor(site), y=n)) +
+  geom_boxplot() +
+  geom_smooth(se = FALSE, method = lm) +
+  theme_bw() +ylab("Percent Nitrogen") + xlab("Site")
+
+
 ```
