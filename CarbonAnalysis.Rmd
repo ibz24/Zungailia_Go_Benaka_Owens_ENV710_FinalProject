@@ -121,14 +121,6 @@ check_model(sc8)
 check_model(sc9)
 check_model(sc12)
 
-check_model(sc9)
-grid.arrange(
-  sc9diag[2],
-  sc9diag[3],
-  sc9diag[4],
-  sc9diag[6],
-  ncol=2
-)
 ```
 
 
