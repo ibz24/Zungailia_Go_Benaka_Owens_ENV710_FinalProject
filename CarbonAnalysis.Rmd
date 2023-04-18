@@ -25,6 +25,7 @@ library(lmtest)
 library(MASS)
 library(AER)
 library(pscl)
+library(gridExtra)
 ```
 
 ```{r}
@@ -57,7 +58,7 @@ ggpairs(soil, c("site", "row", "stake", "soil", "soil.mass", "soil.moisture", "c
 
 ```
 
-```{r}
+```{r, minimum adequate model}
 #Create a model --> carbon as dependent variable
 sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + om+ph.h2o+n+p+nh4+no3+ca+mg+k + soil.moisture + soil.moisture.capacity + n.min+nitr + cec, data = soil)
 summary(sc1)
@@ -71,12 +72,10 @@ sc5 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + ph.h2o + n, data = soi
 summary(sc5)
 sc6 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
 summary(sc6)
-sc7 <- lmer(log(c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
-summary(sc7)
-sc8 <- lmer(asin(sqrt(c/100)) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
-summary(sc8)
-sc8 <- lmer((c)^2 ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
-summary(sc8)
+
+
+
+log10(max(df$CONT+1) - df$CONT)
 
 
 AIC(sc1,sc2,sc3,sc4,sc5,sc6,sc7) #sc4 with lowest AIC
@@ -85,6 +84,53 @@ vif(sc4)
 vif(sc6)
 plot(sc7)
 ```
+
+```{r, check transformations}
+#sc9 and sc12 look a little better
+
+sc7 <- lmer(log(c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc7)
+
+sc8 <- lmer(asin(sqrt(c/100)) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc8)
+
+sc9 <- lmer((c)^2 ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc9)
+
+sc10 <- lmer(log10(max(c+1)-c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc10)
+
+sc11 <- lmer(c^3 ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc11)
+
+sc12 <- lmer(sqrt(max(c+1) - c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc12)
+
+AIC(sc1,sc2,sc3,sc4,sc5,sc6,sc7,sc8,sc9,sc10,sc11,sc12)
+plot(sc6)
+plot(sc7)
+plot(sc8)
+plot(sc9)
+plot(sc10)
+plot(sc11)
+plot(sc12)
+
+check_model(sc6)
+check_model(sc7)
+check_model(sc8)
+check_model(sc9)
+check_model(sc12)
+
+check_model(sc9)
+grid.arrange(
+  sc9diag[2],
+  sc9diag[3],
+  sc9diag[4],
+  sc9diag[6],
+  ncol=2
+)
+```
+
 
 ```{r, Check assumptions using diagnostics}
 #fitted vs residual
@@ -98,31 +144,16 @@ lattice::qqmath(sc6)
 #residuals vs leverage
 plot(sc6, rstudent(.) ~ hatvalues(.))
 
-
 #fitted vs residual
-plot(sc7, type=c("p","smooth"), col.line=1)
+plot(sc9, type=c("p","smooth"), col.line=1)
 #scale-location
-plot(sc7,
+plot(sc9,
      sqrt(abs(resid(.)))~fitted(.),
      type=c("p","smooth"), col.line=1)
 #QQ
-lattice::qqmath(sc7)
+lattice::qqmath(sc9)
 #residuals vs leverage
-plot(sc7, rstudent(.) ~ hatvalues(.))
-
-
-
-#fitted vs residual
-plot(sc8, type=c("p","smooth"), col.line=1)
-#scale-location
-plot(sc8,
-     sqrt(abs(resid(.)))~fitted(.),
-     type=c("p","smooth"), col.line=1)
-#QQ
-lattice::qqmath(sc8)
-#residuals vs leverage
-plot(sc8, rstudent(.) ~ hatvalues(.))
-
+plot(sc9, rstudent(.) ~ hatvalues(.))
 ```
 
 
@@ -131,3 +162,7 @@ ggplot(soil, aes(x=site,y=c))+
   geom_boxplot()
 ```
 
+# Percent Soil Carbon
+
+With the null hypothesis that the percent carbon in the soil would not change across the different land use types or based on changes to percent nitrogen and percent organic matter, I created a mixed linear model that included row and stake as random effects, and colonial land use type, percent organic matter, and percent nitrogen as fixed effects. The alternative hypothesis for this model was that the percent carbon in the soil would change with at least one of the fixed effects. My initial model included variables that previous studies associated with soil carbon content in their modeling approaches (Compton and Boone 2000, Li et al. 2020, Finzi et al. 2020). I used backward elimination of non-significant independent variables to derive the minimum adequate model. I compared the model using AIC values and checked model fit using the likelihood ratio test. I checked for multicollinearity using VIF (variance inflation factor) values.
+• mention transformation/standardization of variables
