@@ -2,13 +2,15 @@
 
 ```{r}
 #Load packages
-require(ggplot2)
-inst
 library(ggplot2)
 library(GGally)
 library(lme4)
 library(dplyr)
-library(lmerTest)
+#library(lmerTest)
+#install.packages("performance")
+library(performance)
+#install.packages("see")
+require(see)
 ```
 
 
@@ -122,14 +124,19 @@ plot(smois)
 library(car)
 vif(smois)
 
-library(ggplot2)
+#Diagnostics
+require(performance)
+require(see)
+check_model(smois)
+
+
 #Site vs soil moisture (scatterplot)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_point() +
   geom_smooth(se = FALSE, method = lm) +
   theme_bw() 
 
-library(ggplot2)
+
 #Site vs soil moisture (boxplot)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_boxplot() +
@@ -158,7 +165,7 @@ Alternative hypothesis: There is a significant relationship between one/several 
 
 To test the null hypothesis that there is no significant relationship between any of the soil variables on soil moisture (gH20/gsoil), we created a linear model ('lmer') with soil moisture as the response variable and all the remaining variables as the independent variables. The alternative hypothesis is that there is a significant relationship between one/several of the soil variables on soil moisture (gH20/gsoil). The soil moisture variable for forest floor and the top 15 cm of mineral soils was computed gravimetrically, which is a method that extracts the water from a given soil sample and calculates a value for soil moisture by comparing the wet and dry soil mass measurements. The water is extracted from a soil sample through as evaporation and followed by a chemical reaction. The following equation is used to calculate soil moisture: (mass of moist soil (g) − mass of dry soil (g)) / mass of dry soil (g). [add citation] Row and stake were treated as random effects, and site was treated as a factor. The full model was reduced down to just contain significant variables, which included: site, row (random effect), stake (random effect), forest floor thickness (mm), and soil moisture capacity. 
 
-Based on the results of the model, there are several variables that have a significant effect on soil moisture. For every milligram increase in forest floor thickness, there is a 0.006160 unit increase in soil moisture (gH20/gsoil) (p=2.67e-08). For every milligram increase in soil moisture capacity, there is a 0.104455 unit increase in soil moisture (gH20/gsoil) (p=0.00120). There are two sites for each land use type (Pasture, Plow, Woodlot), and the results suggest that there is a significant relationship between most sites and soil moisture. Both Woodlot 1 (p=0.00110) and Woodlot 2 (p=0.00161) had signifcant p-values, and their estimates ... [finish interpreting the sites]
+Based on the results of the model, there are several variables that have a significant effect on soil moisture. For every milligram increase in forest floor thickness, there is a 0.006160 unit increase in soil moisture (gH20/gsoil) (p=2.67e-08). For every milligram increase in soil moisture capacity, there is a 0.104455 unit increase in soil moisture (gH20/gsoil) (p=0.00120). There are two sites for each land use type (Pasture, Plow, Woodlot), and the results suggest that there is a significant relationship between most sites and soil moisture. The intercept represents Pasture 1 when all other variables are held constant at zero - in this case, the value for soil moisture is 0.6254 (p=1.10e-10) for Pasture 1 when all other variables are held constant. There is a 0.0627 unit (p=0.338740) increase in soil moisture for Pasture 2 compared to Pasture 1, and this difference is not significant. For Plow 1, there is a .2717 unit decrease in soil moisture compared to Pasture 1, which is significant based on the p-value of 0.000143. Looking at Plow 2, there is a .1383 unit increase in soil moisture compared to Pasture 1, which is not significant based on the p-value of 0.054656. Both of the Woodl
 
 To check the model assumptions that there is no heteroscedasticity, we generated a Residuals vs. Fitted plot. Heteroscedasticity exists when there is a change in the spread of residuals across a range of values. This plot appears good - the points are relatively evenly dispersed along the line and fall within the y-axis values of 1 and -0.5, by which we can conclude that there is no heteroscedasticity. To check the assumptions that there is no multicollinearity, which is when there is a strong correlation between independent variables, we calculated the VIF score for the model. The VIF scores for site (1.765456), forest floor thickness (1.532431), and soil moisture capacity (1.539080) were all quite low, which allows us to conclude that there is no multicollinearity. 
 
