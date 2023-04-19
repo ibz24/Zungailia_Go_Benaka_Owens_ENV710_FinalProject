@@ -59,7 +59,6 @@ ggpairs(soil, c("site", "row", "stake", "soil", "soil.mass", "soil.moisture", "c
 ```
 
 ```{r, minimum adequate model}
-#Create a model --> carbon as dependent variable
 sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + om+ph.h2o+n+p+nh4+no3+ca+mg+k + soil.moisture + soil.moisture.capacity + n.min+nitr + cec, data = soil)
 summary(sc1)
 sc2 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n + nh4 + soil.moisture, data = soil)
@@ -123,6 +122,18 @@ check_model(sc12)
 
 ```
 
+```{r, standardize}
+soil_s <- soil %>%
+  mutate(n_s = scale(n))%>%
+  mutate(om_s = scale(om))
+
+sc13 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om_s + n_s, data = soil_s)
+summary(sc13)
+
+check_model(sc13)
+
+```
+
 
 ```{r, Check assumptions using diagnostics}
 #fitted vs residual
@@ -154,7 +165,20 @@ ggplot(soil, aes(x=site,y=c))+
   geom_boxplot()
 ```
 
-# Percent Soil Carbon
+# Model Methods
 
-With the null hypothesis that the percent carbon in the soil would not change across the different land use types or based on changes to percent nitrogen and percent organic matter, I created a mixed linear model that included row and stake as random effects, and colonial land use type, percent organic matter, and percent nitrogen as fixed effects. The alternative hypothesis for this model was that the percent carbon in the soil would change with at least one of the fixed effects. My initial model included variables that previous studies associated with soil carbon content in their modeling approaches (Compton and Boone 2000, Li et al. 2020, Finzi et al. 2020). I used backward elimination of non-significant independent variables to derive the minimum adequate model. I compared the model using AIC values and checked model fit using the likelihood ratio test. I checked for multicollinearity using VIF (variance inflation factor) values.
-• mention transformation/standardization of variables
+With the null hypothesis that the percent carbon in the soil would not change across the different land use types or based on changes to percent nitrogen and percent organic matter, we created a mixed linear model that included row and stake as random effects, and colonial land use type, percent organic matter, and percent nitrogen as fixed effects. The alternative hypothesis for this model was that the percent carbon in the soil would change with at least one of the fixed effects. Our initial model included variables that previous studies associated with soil carbon content in their modeling approaches (Compton and Boone 2000, Li et al. 2020, Finzi et al. 2020). We used backward elimination of non-significant independent variables to derive the minimum adequate model. To address the assumption of homoscedasticity, we tried to transform my response variable which was a percentage. Despite attempting several transformations (log, arcsine square root, squared), the model did not exhibit any improvements in homogeneity of variance. As a result, we elected to use the original final model without transformations, but we standardized the continuous independent variables. We compared the various models to one another using AIC values and checked model fit using the likelihood ratio test and checked for multicollinearity using VIF (variance inflation factor) values.
+
+The homogeneity of variance plot for the final model indicated that the variability of the residuals is not constant across all levels of the predictors, indicating that the model may exhibit heteroscedasticity. Heteroscedasticity can lead to biased and inefficient parameter estimates and can affect the reliability of hypothesis tests and confidence intervals. Because of this issue, the results of this model should be taken with reservations.
+
+# Model Results
+
+The model indicated that colonial land use types had differing effects on percent carbon in the soil. The model used Pasture 1(REPLACE WITH BETTER DESCRIPTOR) as the reference factor. The expected mean percent carbon in the soil for Pasture 1 was 42.24% when the other continuous independent variables (organic matter and nitrogen) are equal to zero. We interpret the rest of the coefficients for land use compared to Pasture 1. Pasture 2 had marginally significantly different soil carbon percentage compared to Pasture 1, with soil carbon estimated to be 1.34% higher (p-value: 0.0651). Plow 1 also had marginally significantly different soil carbon percentage compared to Pasture 1, with soil carbon estimated to be 1.52% lower than Pasture 1 (p-value: 0.0505).
+
+Percent organic matter and percent nitrogen in the soil were significant predictors of the percent carbon in the soil (**p** = <2e-16 and **p** = 1.11e-11 respectively). Organic matter was positively related to percent carbon in the soil. When the standardized percent organic matter increased by one standard deviation, the percent carbon in the soil was expected to increase by 4.0907 standard deviations, while other predictors were held constant. Percent nitrogen in the soil was also positively related to percent carbon in the soil, with percent carbon expected to increase by 2.4283 standard deviations for every one standard deviation increase in standardized percent nitrogen. Standardized percent organic matter had a larger standardized coefficient (4.0907) compared to standardized percent nitrogen (2.4283). This suggests that the percent organic matter in the soil has a greater relative importance in explaining the variation in the percent carbon in the soil compared to the percent nitrogen in the soil.
+
+
+
+
+
+
