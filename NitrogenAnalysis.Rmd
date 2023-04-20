@@ -114,7 +114,7 @@ MuMIn::r.squaredGLMM(n2.16)
 #add plots for each variable
 #for each site, do percent nitrogen and how carbon affects that - can do for just one site, not for all
 
-plot_model(sc13, sort.est = T, vline.color = "darkblue")
+plot_model(n2.16, sort.est = T, vline.color = "darkblue")
 
 #graph of individual variables
 cf <- fixef(n2.16)
