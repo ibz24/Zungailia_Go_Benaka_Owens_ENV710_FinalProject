@@ -17,6 +17,7 @@ library(performance)
 #install.packages("see")
 library(see)
 library(car)
+library(sjPlot)
 ```
 
 
@@ -122,7 +123,7 @@ AIC(smois1, smois2, smois3, smois4, smois5, smois6, smois7, smois8, smois9, smoi
 smois <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
 summary(smois)
 
-#Assumptions
+## Check Assumptions
 
 #Plot residuals
 par(mfrow = c(2,2))
@@ -130,6 +131,10 @@ plot(smois)
 
 #Check for heteroscedasticity
 vif(smois)
+
+MuMIn::r.squaredGLMM(smois) #final model has r-squared value of 0.594, meaning the model accounts for 59.4% of the variance in the response variable.
+
+plot_model(smois)
 
 #Diagnostics
 check_model(smois, check = c("vif", "qq"))
@@ -182,6 +187,32 @@ ggplot(woodlot2, aes(x=ff.thickness, y=soil.moisture)) +
   geom_point() +
   geom_smooth(se = FALSE, method = lm) +
   theme_bw() +ylab("Soil Moisture") + xlab("Forest Floor Thickness (mm)")
+```
+
+```{r}
+# Graph: Forest Floor Thickness X Soil Moisture
+cfsmois <- fixef(smois)
+with(soil, plot(ff.thickness, soil.moisture, pch=21, bg="white", main = "Relationship between Forest Floor Thickness and Soil Moisture by Colonial Land Use Type",
+xlab = "Forest Floor Thickness (mm)",
+ylab = "Soil Moisture (gH20/gsoil)", las = 1))
+x <- seq(min(soil$ff.thickness), max(soil$ff.thickness), length=1000)
+
+curve(cfsmois[1] + cfsmois[7]*x + cfsmois[8]*mean(soil$soil.moisture.capacity), add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cfsmois[1] + cfsmois[2] + cfsmois[7]*x + cfsmois[8]*mean(soil$soil.moisture.capacity), add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cfsmois[1] + cfsmois[3] + cfsmois[7]*x + cfsmois[8]*mean(soil$soil.moisture.capacity), add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cfsmois[1] + cfsmois[4] + cfsmois[7]*x + cfsmois[8]*mean(soil$soil.moisture.capacity), add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cfsmois[1] + cfsmois[5] + cfsmois[7]*x + cfsmois[8]*mean(soil$soil.moisture.capacity), add=T, col="red", lwd = 1) 
+# Woodlot 1
+curve(cfsmois[1] + cfsmois[6] + cfsmois[7]*x + cfsmois[8]*mean(soil$soil.moisture.capacity), add=T, col="black", lwd = 1) 
+# Woodlot 2
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.75, LU, lty=1, col=Cols, lwd = 1)
 ```
 
 
