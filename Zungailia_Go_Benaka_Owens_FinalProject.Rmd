@@ -201,9 +201,150 @@ Cols <- c("orange", "purple", "green", "blue", "red", "black")
 legend("topleft", cex=0.75, LU, lty=1, col=Cols, lwd = 1)
 ```
 
+## Soil Carbon Content
 
+```{r, data wrangling and exploration, include=F, echo=F}
+soil <- read.csv("soil.csv")
+soil <- soil %>%
+  rename %>%
+  mutate(soil = case_when(
+    soil == "FF" ~ "Forest floor",
+    soil == "MIN" ~ "Mineral soil",
+    TRUE ~ soil)) %>%
+  mutate(site = case_when(
+    site == "P1" ~ "Plow 1",
+    site == "P2" ~ "Plow 2",
+    site == "S1" ~ "Pasture 1",
+    site == "S2" ~ "Pasture 2",
+    site == "W1" ~ "Woodlot 1",
+    site == "W2" ~ "Woodlot 2",
+    TRUE ~ site))
 
+#Remove NAs
+soil <- na.omit(soil)
 
+#Factor classes
+soil$stake <- as.factor(soil$stake)
+soil$row <- as.factor(soil$row)
+soil$site <- as.factor(soil$site)
+
+ggpairs(soil, c("site", "row", "stake", "soil", "soil.mass", "soil.moisture", "c","n","ph.h2o","om"))
+
+```
+
+```{r, minimum adequate model, include=F, echo=F}
+sc1 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + om+ph.h2o+n+p+nh4+no3+ca+mg+k + soil.moisture + soil.moisture.capacity + n.min+nitr + cec, data = soil)
+summary(sc1)
+sc2 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n + nh4 + soil.moisture, data = soil)
+summary(sc2)
+sc3 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n + soil.moisture, data = soil)
+summary(sc3)
+sc4 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + bulk.density + om + ph.h2o + n, data = soil)
+summary(sc4)
+sc5 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + ph.h2o + n, data = soil)
+summary(sc5)
+sc6 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc6)
+
+lrtest(sc1,sc2,sc3,sc4,sc5,sc6,sc7) #sc4 fits the data equally well as the full model, sc6 fits data as well as sc5
+
+```
+
+```{r, check transformations, include=F, echo=F}
+#sc9 and sc12 look a little better
+
+sc7 <- lmer(log(c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc7)
+
+sc8 <- lmer(asin(sqrt(c/100)) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc8)
+
+sc9 <- lmer((c)^2 ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc9)
+
+sc10 <- lmer(log10(max(c+1)-c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc10)
+
+sc11 <- lmer(c^3 ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc11)
+
+sc12 <- lmer(sqrt(max(c+1) - c) ~ factor(site) + (1|row) + (1|stake) + om + n, data = soil)
+summary(sc12)
+
+AIC(sc1,sc2,sc3,sc4,sc5,sc6,sc7,sc8,sc9,sc10,sc11,sc12)
+lrtest(sc1,sc2,sc3,sc4,sc5,sc6,sc7,sc8,sc9,sc10,sc11,sc12)
+
+check_model(sc6)
+check_model(sc7)
+check_model(sc8)
+check_model(sc9)
+check_model(sc10)
+check_model(sc11)
+check_model(sc12)
+
+```
+
+```{r, standardize, include=F, echo=F}
+soil_s <- soil %>%
+  mutate(n_s = scale(n))%>%
+  mutate(om_s = scale(om))
+
+#final model
+sc13 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om_s + n_s, data = soil_s)
+summary(sc13)
+check_model(sc13)
+
+MuMIn::r.squaredGLMM(sc13) #final model has r-squared value of 0.871, meaning the model accounts for 87% of the variance in the response variable.
+
+```
+
+```{r, plots, include=F, echo=F}
+ggplot(soil, aes(x=site,y=c))+
+  geom_boxplot()+
+  labs(x="Colonial Land Use Type", y="Percent Carbon in Soil")
+
+plot_model(sc13, sort.est = T, vline.color = "darkblue")
+
+# Graph: OM X C
+cf <- fixef(sc6)
+with(soil, plot(om, c, pch=21, bg="white", main = "Relationship between Organic Matter and Carbon Content by Colonial Land Use Type",
+xlab = "Percent Organic Matter",
+ylab = "Percent Carbon", las = 1))
+x <- seq(min(soil$om), max(soil$om), length=1000)
+curve(cf[1] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf[1] + cf[2] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf[1] + cf[3] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf[1] + cf[4] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf[1] + cf[5] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="red", lwd = 1) 
+curve(cf[1] + cf[6] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="black", lwd = 1) 
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.75, LU, lty=1, col=Cols, lwd = 1)
+
+#Graph: N X C
+with(soil, plot(n, c, pch=21, bg="white", main = "Relationship between Nitrogen and Carbon Content by Colonial Land Use Type",
+xlab = "Percent Nitrogen",
+ylab = "Percent Carbon", las = 1))
+x <- seq(min(soil$n), max(soil$n), length=1000)
+curve(cf[1] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf[1] + cf[2] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf[1] + cf[3] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf[1] + cf[4] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf[1] + cf[5] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="red", lwd = 1) 
+curve(cf[1] + cf[6] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="black", lwd = 1) 
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
+
+```
 
 
 
