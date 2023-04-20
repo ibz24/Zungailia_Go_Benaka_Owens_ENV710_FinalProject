@@ -118,11 +118,11 @@ summary(smois17)
 AIC(smois1, smois2, smois3, smois4, smois5, smois6, smois7, smois8, smois9, smois10, smois11, smois12, smois13, smois14, smois15, smois16, smois17)
   #smois17 is the best model
 
-#Assumptions: creating a residual plot, a histogram of the residuals or a Q-Q plot 
-
 #Best Model
 smois <- lmer(soil.moisture ~ factor(site) + (1|row) + (1|stake) + ff.thickness + soil.moisture.capacity, data = soil)
 summary(smois)
+
+#Assumptions
 
 #Plot residuals
 par(mfrow = c(2,2))
@@ -136,8 +136,6 @@ check_model(smois, check = c("vif", "qq"))
 check_model(smois, check = c("outliers"))
 check_model(smois, check = c("reqq"))
 
-
-
 #Site vs soil moisture (scatterplot)
 ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_point() +
@@ -150,8 +148,6 @@ ggplot(soil, aes(x=factor(site), y=soil.moisture)) +
   geom_smooth(se = FALSE, method = lm) +
   theme_bw() + 
   labs(x="Site (Land Use Type)", y="Soil Moisture (gH20/gsoil)")
-
-#Soil moisture versus forest floor thickness for (Woodlot 1 and Woodlot 2)
 
 #Mean of soil moisture for each of the land use types
 soil %>% filter(site == "Plow 1" | site == "Plow 2") %>%
@@ -172,13 +168,15 @@ soil %>% filter(site == "Woodlot 1" | site == "Woodlot 2") %>%
 woodlot1 <- soil %>%
     filter(site %in% c("Woodlot 1"))
 
+woodlot2 <- soil %>%
+    filter(site %in% c("Plow 1"))
+
+#Forest floor thickness vs soil moisture for Woodlot 1 & 2 
+
 ggplot(woodlot1, aes(x=ff.thickness, y=soil.moisture)) +
   geom_point() +
   geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Soil Moisture") + xlab("Forest Floor Thickness (mm)")
-
-woodlot2 <- soil %>%
-    filter(site %in% c("Plow 1"))
+  theme_bw() +ylab("Soil Moisture (gH20/gsoil)") + xlab("Woodlot 1 - Forest Floor Thickness (mm)")
 
 ggplot(woodlot2, aes(x=ff.thickness, y=soil.moisture)) +
   geom_point() +
@@ -194,9 +192,17 @@ Alternative hypothesis: There is a significant relationship between one/several 
 
 To test the null hypothesis that there is no significant relationship between any of the soil variables on soil moisture (gH20/gsoil), we created a linear model ('lmer') with soil moisture as the response variable and all the remaining variables as the independent variables. The alternative hypothesis is that there is a significant relationship between one/several of the soil variables on soil moisture (gH20/gsoil). The soil moisture variable for forest floor and the top 15 cm of mineral soils was computed gravimetrically, which is a method that extracts the water from a given soil sample and calculates a value for soil moisture by comparing the wet and dry soil mass measurements. The water is extracted from a soil sample through as evaporation and followed by a chemical reaction. The following equation is used to calculate soil moisture: (mass of moist soil (g) − mass of dry soil (g)) / mass of dry soil (g). [add citation] Row and stake were treated as random effects, and site was treated as a factor. The full model was reduced down to just contain significant variables, which included: site, row (random effect), stake (random effect), forest floor thickness (mm), and soil moisture capacity. 
 
-Based on the results of the soil moisture model, there are several variables that have a significant effect on soil moisture. For every milligram increase in forest floor thickness, there is a 0.0062 unit increase in soil moisture (gH20/gsoil) (**p**=2.67e-08). For every milligram increase in soil moisture capacity, there is a 0.104 unit increase in soil moisture (gH20/gsoil) (**p=**0.0012). There are two sites for each land use type (Pasture, Plow, Woodlot), and the results suggest that there is a significant difference in the soil moisture values between most sites. The intercept, Pasture 1, is the soil moisture value when all other variables are held constant at zero - in this case, the value for soil moisture is 0.625 (p=1.10e-10) for Pasture 1 when all other variables are held constant. Plow 1, Woodlot 1, and Woodlot 2 all had significant differences in soil moisture when compared to Pasture 1. Both Woodlot sites had a significant increase in soil moisture in comparison to that of Pasture 1 (estimates = 0.261 & 0.258 gH20/gsoil), and the Plow 1 site displayed a significant decrease in soil moisture compared to Pasture 1 (estimate = -0.328 gH20/gsoil). Pasture 2 and Plow 2 did not present significant differences in soil moisture levels to those found in Pasture 1. 
+Based on the results of the soil moisture model, there are several variables that have a significant effect on soil moisture. For every milligram increase in forest floor thickness, there is a 0.0062 unit increase in soil moisture (gH20/gsoil) (**p**=2.67e-08). For every milligram increase in soil moisture capacity, there is a 0.104 unit increase in soil moisture (gH20/gsoil) (**p=**0.0012). There are two sites for each land use type (Pasture, Plow, Woodlot), and the results suggest that there is a significant difference in the soil moisture values between most sites. The intercept, Pasture 1, is the soil moisture value when all other variables are held constant at zero - in this case, the value for soil moisture is 0.625 (p=1.10e-10) for Pasture 1 when all other variables are held constant. Plow 1, Woodlot 1, and Woodlot 2 all had significant differences in soil moisture when compared to Pasture 1. Both Woodlot sites had a significant increase in soil moisture in comparison to that of Pasture 1 (estimates = 0.261 & 0.258 gH20/gsoil), and the Plow 1 site displayed a significant decrease in soil moisture compared to Pasture 1 (estimate = -0.328 gH20/gsoil). Pasture 2 and Plow 2 did not present any significant differences in soil moisture to those found in Pasture 1. 
+
+To further explore the variation in soil moisture across the three land use types, we calculated the mean soil moisture for each land use. The results were as follows:
+  Plow: 0.974 gH20/gsoil
+  Pasture: 1.238 gH20/gsoil
+  Woodlot: 1.605 gH20/gsoil
+These values indicate that the Woodlot sites had the highest average soil moisture, followed by Pasture, and Plow having the smallest average soil moisture value. These results support the conclusions generated from the model as well. 
 
 To check the model assumptions that there is no heteroscedasticity, we generated a Residuals vs. Fitted plot. Heteroscedasticity exists when there is a change in the spread of residuals across a range of values. This plot appears to be good - the points are relatively evenly dispersed along the line and fall within the y-axis values of 1 and -0.5, by which we can conclude that there is no heteroscedasticity. To check the assumptions that there is no multicollinearity, which is when there is a strong correlation between independent variables, we calculated the VIF scores and plot for the model. The VIF scores for site (1.765), forest floor thickness (1.532), and soil moisture capacity (1.539) were all quite low, which allows us to conclude that there is no multicollinearity. The residuals appear to be relatively normally distributed (the dots in the plot fall mostly along the line), the random effects (stake and row) are normally distributed, and there don't appear to by influential observations (all the points fall within the contour lines on the plot). 
+
+
 
 
 
