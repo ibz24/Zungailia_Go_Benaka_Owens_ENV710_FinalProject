@@ -26,6 +26,8 @@ library(MASS)
 library(AER)
 library(pscl)
 library(gridExtra)
+library(sjPlot)
+library(MuMIn)
 ```
 
 ```{r}
@@ -127,10 +129,13 @@ soil_s <- soil %>%
   mutate(n_s = scale(n))%>%
   mutate(om_s = scale(om))
 
+#final model
 sc13 <- lmer(c ~ factor(site) + (1|row) + (1|stake) + om_s + n_s, data = soil_s)
 summary(sc13)
-
 check_model(sc13)
+
+MuMIn::r.squaredGLMM(sc13) #final model has r-squared value of 0.871, meaning the model accounts for 87% of the variance in the response variable.
+
 
 ```
 
@@ -138,8 +143,52 @@ check_model(sc13)
 ggplot(soil, aes(x=site,y=c))+
   geom_boxplot()
 
-ggplot(soil, aes(x=n,y=c))+
+ggplot(soil_s, aes(x=om,y=c))+
   geom_point()
+
+plot_model(sc13, sort.est = T, vline.color = "darkblue")
+
+# Graph: OM X C
+cf <- fixef(sc6)
+with(soil, plot(om, c, pch=21, bg="white", main = "Relationship between Organic Matter and Carbon Content by Colonial Land Use Type",
+xlab = "Percent Organic Matter",
+ylab = "Percent Carbon", las = 1))
+x <- seq(min(soil$om), max(soil$om), length=1000)
+curve(cf[1] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf[1] + cf[2] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf[1] + cf[3] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf[1] + cf[4] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf[1] + cf[5] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="red", lwd = 1) 
+curve(cf[1] + cf[6] + cf[7]*x + cf[8]*mean(soil$n), add=T, col="black", lwd = 1) 
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.75, LU, lty=1, col=Cols, lwd = 1)
+
+#Graph: N X C
+with(soil, plot(n, c, pch=21, bg="white", main = "Relationship between Nitrogen and Carbon Content by Colonial Land Use Type",
+xlab = "Percent Nitrogen",
+ylab = "Percent Carbon", las = 1))
+x <- seq(min(soil$n), max(soil$n), length=1000)
+curve(cf[1] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf[1] + cf[2] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf[1] + cf[3] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf[1] + cf[4] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf[1] + cf[5] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="red", lwd = 1) 
+curve(cf[1] + cf[6] + cf[7]*mean(soil$om) + cf[8]*x, add=T, col="black", lwd = 1) 
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
+
 ```
 
 # Model Methods
