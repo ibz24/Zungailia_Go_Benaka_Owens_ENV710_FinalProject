@@ -43,11 +43,6 @@ soil$stake <- as.factor(soil$stake)
 soil$row <- as.factor(soil$row)
 soil$site <- as.factor(soil$site)
 
-# just looking at impact of site on percent nitrogen in soil
-site.n <- lm (n~ factor(site), data=soil)
-summary(site.n)
-#can tell that woodlots are significantly different from pasture. while plow 1&2 and pasture are not significantly different from pasture 1. 
-
 #full model to determine what impacts nitrogen in soils across the various plots 
 n2.1 <- lmer(n ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c  + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
 summary(n2.1)
@@ -107,57 +102,80 @@ vif(n2.16)
 
 #checking assumptions 
 plot(n2.16)
-#residual vs fitted plot looks ok. some minor bunching but not too serious
+#residual vs fitted plot looks ok.
 
-require(ggplot2)
-#Site vs nitrogen 
-ggplot(soil, aes(x=factor(site), y=n)) +
-  geom_point() +
-  geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Percent Nitrogen") + xlab("Site")
+#r2
+MuMIn::r.squaredGLMM(n2.16)
+```
 
-ggplot(soil, aes(x=factor(site), y=n)) +
-  geom_boxplot() +
-  geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Percent Nitrogen") + xlab("Site")
+```{r, graphing results}
+
 
 #add plots for each variable
 #for each site, do percent nitrogen and how carbon affects that - can do for just one site, not for all
 
-ggplot(soil, aes(x=c, y=n)) +
-  geom_point() +
-  geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Percent Nitrogen") + xlab("Percent Carbon")
+plot_model(sc13, sort.est = T, vline.color = "darkblue")
+
+#graph of individual variables
+cf <- fixef(n2.16)
+
+#n vs c
+with(soil, plot(c, n, pch=21, bg="white", main = "Relationship between Carbon and Nitrogen by \n Colonial Land Use Type",
+xlab = "Percent Carbon",
+ylab = "Percent Nitrogen", las = 1))
+x <- seq(min(soil$c), max(soil$c), length=1000)
+
+curve(cf[1] + cf[7]*mean(soil$soil.mass) + cf[8]*x + cf[9]*mean(soil$ca) , add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf[1] + cf[2] + cf[7]*mean(soil$soil.mass) + cf[8]*x + cf[9]*mean(soil$ca), add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf[1] + cf[3] + cf[7]*mean(soil$soil.mass) + cf[8]*x + cf[9]*mean(soil$ca), add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf[1] + cf[4] + cf[7]*mean(soil$soil.mass) + cf[8]*x + cf[9]*mean(soil$ca), add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf[1] + cf[5] + cf[7]*mean(soil$soil.mass) + cf[8]*x + cf[9]*mean(soil$ca), add=T, col="red", lwd = 1)
+# Woodlot 1
+curve(cf[1] + cf[6] + cf[7]*mean(soil$soil.mass) + cf[8]*x + cf[9]*mean(soil$ca), add=T, col="black", lwd = 1) 
+# Woodlot 2
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
+
+#n vs ca
+with(soil, plot(ca, n, pch=21, bg="white", main = "Relationship between Calcium (mg/g) and \nPercent Nitrogen by Colonial Land Use Type",
+xlab = "Calcium (mg/g)",
+ylab = "Percent Nitrogen", las = 1))
+x <- seq(min(soil$ca), max(soil$ca), length=1000)
+
+curve(cf[1] + cf[7]*mean(soil$soil.mass) + cf[8]*mean(soil$c) + cf[9]*x , add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf[1] + cf[2] + cf[7]*mean(soil$soil.mass) + cf[8]*mean(soil$c) + cf[9]*x, add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf[1] + cf[3] + cf[7]*mean(soil$soil.mass) + cf[8]*mean(soil$c) + cf[9]*x, add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf[1] + cf[4] + cf[7]*mean(soil$soil.mass) + cf[8]*mean(soil$c) + cf[9]*x, add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf[1] + cf[5] + cf[7]*mean(soil$soil.mass) + cf[8]*mean(soil$c) + cf[9]*x, add=T, col="red", lwd = 1)
+# Woodlot 1
+curve(cf[1] + cf[6] + cf[7]*mean(soil$soil.mass) + cf[8]*mean(soil$c) + cf[9]*x, add=T, col="black", lwd = 1) 
+# Woodlot 2
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("bottomright", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
+
 
 require(dplyr)
-#dataset for only plow 1 
-plow1 <- soil %>%
-    filter(site %in% c("Plow 1"))
+#Mean of soil moisture for each of the land use types
+soil %>% filter(site == "Plow 1" | site == "Plow 2") %>%
+  summarise(mean=mean(n))
+  #1.466078
 
-ggplot(plow1, aes(x=c, y=n)) +
-  geom_point() +
-  geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Percent Nitrogen") + xlab("Percent Carbon")
-
-#plow 2
-plow2 <- soil %>%
-    filter(site %in% c("Plow 2"))
-
-
-ggplot(plow2, aes(x=c, y=n)) +
-  geom_point() +
-  geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Percent Nitrogen") + xlab("Percent Carbon")
-
-
-#pasture 1
-pasture1 <- soil %>%
-    filter(site %in% c("Pasture 1"))
-
-
-ggplot(pasture1, aes(x=c, y=n)) +
-  geom_point() +
-  geom_smooth(se = FALSE, method = lm) +
-  theme_bw() +ylab("Percent Nitrogen") + xlab("Percent Carbon")
-
+soil %>% filter(site == "Pasture 1" ) %>%
+  summarise(mean=mean(n))
+  #1.473462
+soil %>% filter(site == "Woodlot 1" | site == "Woodlot 2") %>%
+  summarise(mean=mean(n))
+  #1.714717
 ```
