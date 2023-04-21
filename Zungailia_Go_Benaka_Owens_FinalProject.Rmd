@@ -200,7 +200,155 @@ LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
 Cols <- c("orange", "purple", "green", "blue", "red", "black")
 legend("topleft", cex=0.75, LU, lty=1, col=Cols, lwd = 1)
 ```
+## Soil Nitrogen Content
 
+```{r}
+soil <- read.csv("soil.csv")
+soil <- soil %>%
+  rename %>%
+  mutate(soil = case_when(
+    soil == "FF" ~ "Forest floor",
+    soil == "MIN" ~ "Mineral soil",
+    TRUE ~ soil)) %>%
+  mutate(site = case_when(
+    site == "P1" ~ "Plow 1",
+    site == "P2" ~ "Plow 2",
+    site == "S1" ~ "Pasture 1",
+    site == "S2" ~ "Pasture 2",
+    site == "W1" ~ "Woodlot 1",
+    site == "W2" ~ "Woodlot 2",
+    TRUE ~ site))
+
+#Remove NAs
+soil <- na.omit(soil)
+
+#ggpairs(soil, c("site", "row", "stake", "soil", "soil.mass", "soil.moisture", "c","n","ph.h2o","om")) 
+
+#Factor classes
+soil$stake <- as.factor(soil$stake)
+soil$row <- as.factor(soil$row)
+soil$site <- as.factor(soil$site)
+
+#full model to determine what impacts nitrogen in soils across the various plots 
+n2.1 <- lmer(n ~ factor(site) + (1|row) + (1|stake) + ff.thickness + bulk.density + soil.mass + ph.h2o + ph.cacl2 + c  + om + p + nh4 + no3 + n.min + nitr + cec + ca + mg + k + soil.moisture + soil.moisture.capacity, data = soil)
+summary(n2.1)
+
+#stepwise reduction to remove the most non-significant factor
+n2.2 <- update(n2.1, .~. -p)
+summary(n2.2)
+
+n2.3 <- update(n2.2, .~. -cec)
+summary(n2.3)
+
+n2.4 <- update(n2.3, .~. -k)
+summary(n2.4)
+
+n2.5 <- update(n2.4, .~. -mg)
+summary(n2.5)
+
+n2.6 <- update(n2.5, .~. -ph.cacl2)
+summary(n2.6)
+
+n2.7 <- update(n2.6, .~. -n.min)
+summary(n2.7)
+
+n2.8 <- update(n2.7, .~. -nh4)
+summary(n2.8)
+
+n2.9 <- update(n2.8, .~. -ff.thickness)
+summary(n2.9)
+
+n2.10 <- update(n2.9, .~. -nitr)
+summary(n2.10)
+
+n2.11 <- update(n2.10, .~. -no3)
+summary(n2.11)
+
+n2.12 <- update(n2.11, .~. -ph.h2o)
+summary(n2.12)
+
+n2.13 <- update(n2.12, .~. -soil.moisture.capacity)
+summary(n2.13)
+
+n2.14 <- update(n2.13, .~. -om)
+summary(n2.14)
+
+n2.15 <- update(n2.14, .~. -soil.moisture)
+summary(n2.15)
+
+#best model
+n2.16 <- update(n2.15, .~. -bulk.density)
+summary(n2.16)
+
+AIC(n2.1, n2.2, n2.3, n2.4, n2.5, n2.6, n2.7, n2.8, n2.9, n2.10, n2.11, n2.12, n2.13, n2.14, n2.15, n2.16)
+
+#variance
+vif(n2.16)
+
+#checking assumptions 
+plot(n2.16)
+#residual vs fitted plot looks ok.
+
+#r2
+MuMIn::r.squaredGLMM(n2.16)
+```
+
+```{r, graphing results}
+
+
+plot_model(n2.16, sort.est = T, vline.color = "darkblue")
+
+#graph of individual variables
+cf.n <- fixef(n2.16)
+
+#n vs c
+with(soil, plot(c, n, pch=21, bg="white", main = "Relationship between Carbon and Nitrogen by \n Colonial Land Use Type",
+xlab = "Percent Carbon",
+ylab = "Percent Nitrogen", las = 1))
+x <- seq(min(soil$c), max(soil$c), length=1000)
+
+curve(cf.n[1] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*x + cf.n[9]*mean(soil$ca) , add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf.n[1] + cf.n[2] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*x + cf.n[9]*mean(soil$ca), add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf.n[1] + cf.n[3] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*x + cf.n[9]*mean(soil$ca), add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf.n[1] + cf.n[4] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*x + cf.n[9]*mean(soil$ca), add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf.n[1] + cf.n[5] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*x + cf.n[9]*mean(soil$ca), add=T, col="red", lwd = 1)
+# Woodlot 1
+curve(cf.n[1] + cf.n[6] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*x + cf.n[9]*mean(soil$ca), add=T, col="black", lwd = 1) 
+# Woodlot 2
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("topleft", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
+
+#n vs ca
+with(soil, plot(ca, n, pch=21, bg="white", main = "Relationship between Calcium (mg/g) and \nPercent Nitrogen by Colonial Land Use Type",
+xlab = "Calcium (mg/g)",
+ylab = "Percent Nitrogen", las = 1))
+x <- seq(min(soil$ca), max(soil$ca), length=1000)
+
+curve(cf.n[1] + cf.n[7]*mean(soil$soil.mass) + cf.n[8]*mean(soil$c) + cf.n[9]*x , add=T, col="orange", lwd = 1)  
+# Pasture 1
+curve(cf.n[1] + cf.n[2] +  cf.n[7]*mean(soil$soil.mass) + cf.n[8]*mean(soil$c) + cf.n[9]*x , add=T, col="purple", lwd = 1) 
+# Pasture 2
+curve(cf.n[1] + cf.n[3] +  cf.n[7]*mean(soil$soil.mass) + cf.n[8]*mean(soil$c) + cf.n[9]*x , add=T, col="green", lwd = 1) 
+# Plow 1
+curve(cf.n[1] + cf.n[4] +  cf.n[7]*mean(soil$soil.mass) + cf.n[8]*mean(soil$c) + cf.n[9]*x , add=T, col="blue", lwd = 1) 
+# Plow 2
+curve(cf.n[1] + cf.n[5] +  cf.n[7]*mean(soil$soil.mass) + cf.n[8]*mean(soil$c) + cf.n[9]*x , add=T, col="red", lwd = 1)
+# Woodlot 1
+curve(cf.n[1] + cf.n[6] +  cf.n[7]*mean(soil$soil.mass) + cf.n[8]*mean(soil$c) + cf.n[9]*x , add=T, col="black", lwd = 1) 
+# Woodlot 2
+
+LU <- c("Pasture 1", "Pasture 2", "Plow 1", "Plow 2", "Woodlot 1", "Woodlot 2")
+Cols <- c("orange", "purple", "green", "blue", "red", "black")
+legend("bottomright", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
+
+
+```
 ## Soil Carbon Content
 
 ```{r, data wrangling and exploration, include=F, echo=F}

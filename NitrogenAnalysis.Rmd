@@ -99,7 +99,6 @@ AIC(n2.1, n2.2, n2.3, n2.4, n2.5, n2.6, n2.7, n2.8, n2.9, n2.10, n2.11, n2.12, n
 #variance
 vif(n2.16)
 
-
 #checking assumptions 
 plot(n2.16)
 #residual vs fitted plot looks ok.
@@ -110,9 +109,6 @@ MuMIn::r.squaredGLMM(n2.16)
 
 ```{r, graphing results}
 
-
-#add plots for each variable
-#for each site, do percent nitrogen and how carbon affects that - can do for just one site, not for all
 
 plot_model(n2.16, sort.est = T, vline.color = "darkblue")
 
@@ -166,16 +162,4 @@ Cols <- c("orange", "purple", "green", "blue", "red", "black")
 legend("bottomright", cex=0.6, LU, lty=1, col=Cols, lwd = 1)
 
 
-require(dplyr)
-#Mean of soil moisture for each of the land use types
-soil %>% filter(site == "Plow 1" | site == "Plow 2") %>%
-  summarise(mean=mean(n))
-  #1.466078
-
-soil %>% filter(site == "Pasture 1" ) %>%
-  summarise(mean=mean(n))
-  #1.473462
-soil %>% filter(site == "Woodlot 1" | site == "Woodlot 2") %>%
-  summarise(mean=mean(n))
-  #1.714717
 ```
